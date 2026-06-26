@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Glover Golf Hub</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Glover Golf Hub"/>
+<meta name="theme-color" content="#023234"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23023234'/><text y='72' x='50' text-anchor='middle' font-size='55'>⛳</text></svg>"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23023234'/><text y='72' x='50' text-anchor='middle' font-size='55'>⛳</text></svg>"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:#023234;font-family:'Inter',sans-serif;min-height:100vh;padding-top:env(safe-area-inset-top)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback } = React;
+
+// ── Palette — Glover Golf Hub ───────────────────────────────────
+const G = "#023234", GM = "#1B4332", GL = "#52B788";
+const CR = "#F5F0E8", CRD = "#E8E0CC";
+const BR = "#E8742C", BRL = "#F2925A";   // burnt orange (logo accent)
+const PK = "#EAC4C4";                     // soft pink (club-iron accent)
+const INK = "#1A1A1A", INM = "#4A4A4A", INL = "#8A8A8A";
+const WH = "#FFFFFF", RD = "#C0392B";
+
+// Embedded logo (base64) — Glover Golf Hub
+const LOGO_SRC = "data:image/png;base64,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";
+
+// ── Data ─────────────────────────────────────────────────────────
+const ROUNDS_RAW = [
+  [1,"2025-01-01","Aylesbury Vale",95,23,null,null],
+  [2,"2025-04-20","Concord",85,18,null,null],
+  [3,"2025-04-29","Concord",83,16,null,null],
+  [4,"2025-03-31","Bulwell Forest",89,21,null,null],
+  [5,"2025-04-17","Whipsnade",87,14,null,null],
+  [6,"2025-04-27","Bulwell Forest",92,24,null,null],
+  [7,"2025-05-11","Concord",81,14,null,null],
+  [8,"2025-05-18","Concord",81,14,null,null],
+  [9,"2025-05-24","Whipsnade",98,25,null,null],
+  [10,"2025-05-25","Whipsnade",102,29,null,null],
+  [11,"2025-05-29","Bulwell Hall",87,18,null,null],
+  [12,"2025-06-20","Concord",85,18,null,null],
+  [13,"2025-06-25","Concord",87,20,null,null],
+  [14,"2025-07-05","Weston Turville",86,17,null,null],
+  [15,"2025-07-19","Bulwell Forest",87,19,19,null],
+  [16,"2025-07-27","Weston Turville",91,22,20,null],
+  [17,"2025-07-28","Whipsnade",89,16,16,null],
+  [18,"2025-08-03","Tinsley",88,18,18,null],
+  [19,"2025-08-09","Tinsley",86,16,16,null],
+  [20,"2025-09-04","Tinsley",87,17,17,null],
+  [21,"2025-09-19","Tinsley",94,24,20,null],
+  [22,"2025-10-04","Three Locks",86,16,16,null],
+  [23,"2025-10-05","Whipsnade",91,18,18,null],
+  [24,"2025-10-25","Tinsley",85,15,15,null],
+  [25,"2025-11-10","Bulwell Forest",80,12,12,null],
+  [26,"2025-11-23","Whipsnade",88,15,15,null],
+  [27,"2025-12-30","Whipsnade",100,27,24,null],
+  [28,"2026-02-01","Whipsnade",86,13,13,null],
+  [29,"2026-03-15","Bulwell Forest",84,16,16,null],
+  [30,"2026-04-04","Three Locks",85,15,15,null],
+  [31,"2026-04-06","Whipsnade",91,18,15,null],
+  [32,"2026-04-11","Bulwell Hall",88,19,17,null],
+  [33,"2026-05-04","Tinsley",89,19,18,null],
+  [34,"2026-05-12","Tinsley",85,15,14,14.4],
+  [35,"2026-05-17","Weston Turville",96,27,26,14.4],
+  [36,"2026-05-22","Tinsley",82,12,11,13.8],
+  [37,"2026-06-05","Tinsley",89,19,17,13.8],
+  [38,"2026-06-07","Tinsley",87,17,16,13.8],
+  [39,"2026-06-11","Tinsley",88,18,17,13.8],
+  [40,"2026-06-14","Tinsley",84,14,13,13.5],
+  [41,"2026-06-21","Tinsley",88,18,18,13.6],
+].map(([n,date,course,score,stp,hcpC,hcpA])=>({
+  id:n, date, course, totalScore:score, scoreToPar:stp,
+  handicapCounting:hcpC, handicapAfter:hcpA,
+  par:72, holes:Array(18).fill(""), front9:null, back9:null, detailLoaded:false
+}));
+
+const HCP_SERIES = [{r:"R34",v:14.4},{r:"R35",v:14.4},{r:"R36",v:13.8},{r:"R37",v:13.8},{r:"R38",v:13.8},{r:"R39",v:13.8},{r:"R40",v:13.5}];
+
+const ALL_COURSES = [
+  { name:"Tinsley", par:70, front:35, back:35, yards:5707,
+    // avgToPar values taken directly from your Google Sheet's "Avg to Par" column
+    holes:[{n:1,par:4,yards:421,si:5,sheetAvgToPar:1.3},{n:2,par:3,yards:161,si:15,sheetAvgToPar:0.9},{n:3,par:5,yards:482,si:3,sheetAvgToPar:1.2},{n:4,par:4,yards:312,si:11,sheetAvgToPar:1.3},{n:5,par:4,yards:284,si:13,sheetAvgToPar:0.5},{n:6,par:4,yards:337,si:7,sheetAvgToPar:1.0},{n:7,par:4,yards:281,si:17,sheetAvgToPar:0.7},{n:8,par:4,yards:403,si:1,sheetAvgToPar:1.3},{n:9,par:3,yards:144,si:9,sheetAvgToPar:0.2},{n:10,par:4,yards:368,si:12,sheetAvgToPar:1.1},{n:11,par:4,yards:304,si:10,sheetAvgToPar:0.7},{n:12,par:4,yards:381,si:2,sheetAvgToPar:0.9},{n:13,par:4,yards:319,si:16,sheetAvgToPar:0.7},{n:14,par:4,yards:359,si:4,sheetAvgToPar:1.5},{n:15,par:3,yards:139,si:18,sheetAvgToPar:0.9},{n:16,par:5,yards:487,si:6,sheetAvgToPar:1.0},{n:17,par:3,yards:169,si:8,sheetAvgToPar:1.3},{n:18,par:4,yards:356,si:14,sheetAvgToPar:0.6}]
+  },
+  { name:"Aylesbury Vale", par:72, front:36, back:36, yards:6612,
+    holes:[{n:1,par:5,yards:501,si:11},{n:2,par:3,yards:170,si:13},{n:3,par:4,yards:423,si:4},{n:4,par:4,yards:323,si:15},{n:5,par:4,yards:387,si:6},{n:6,par:4,yards:406,si:2},{n:7,par:4,yards:343,si:16},{n:8,par:3,yards:219,si:9},{n:9,par:4,yards:488,si:17},{n:10,par:4,yards:448,si:5},{n:11,par:4,yards:366,si:8},{n:12,par:5,yards:506,si:12},{n:13,par:4,yards:420,si:1},{n:14,par:4,yards:447,si:3},{n:15,par:3,yards:160,si:10},{n:16,par:4,yards:303,si:14},{n:17,par:3,yards:167,si:18},{n:18,par:5,yards:535,si:7}]
+  },
+  { name:"Bulwell Forest", par:68, front:34, back:34, yards:5310,
+    holes:[{n:1,par:4,yards:368,si:2},{n:2,par:4,yards:269,si:10},{n:3,par:4,yards:307,si:14},{n:4,par:4,yards:255,si:12},{n:5,par:3,yards:212,si:4},{n:6,par:4,yards:270,si:16},{n:7,par:3,yards:93,si:18},{n:8,par:4,yards:325,si:8},{n:9,par:4,yards:311,si:6},{n:10,par:4,yards:347,si:7},{n:11,par:5,yards:473,si:17},{n:12,par:3,yards:185,si:9},{n:13,par:4,yards:400,si:1},{n:14,par:3,yards:194,si:3},{n:15,par:4,yards:378,si:15},{n:16,par:4,yards:364,si:5},{n:17,par:3,yards:199,si:11},{n:18,par:4,yards:360,si:13}]
+  },
+  { name:"Bulwell Hall", par:69, front:35, back:34, yards:5824,
+    holes:[{n:1,par:4,yards:325,si:12},{n:2,par:4,yards:358,si:4},{n:3,par:4,yards:393,si:2},{n:4,par:4,yards:138,si:18},{n:5,par:4,yards:355,si:14},{n:6,par:4,yards:375,si:6},{n:7,par:3,yards:169,si:8},{n:8,par:4,yards:290,si:16},{n:9,par:4,yards:515,si:10},{n:10,par:3,yards:130,si:17},{n:11,par:4,yards:367,si:11},{n:12,par:4,yards:330,si:15},{n:13,par:4,yards:370,si:7},{n:14,par:4,yards:415,si:1},{n:15,par:4,yards:408,si:3},{n:16,par:3,yards:145,si:13},{n:17,par:4,yards:371,si:5},{n:18,par:4,yards:370,si:9}]
+  },
+  { name:"Concord", par:67, front:36, back:31, yards:4612,
+    holes:[{n:1,par:4,yards:283,si:13},{n:2,par:4,yards:482,si:2},{n:3,par:4,yards:290,si:17},{n:4,par:4,yards:470,si:11},{n:5,par:4,yards:420,si:1},{n:6,par:3,yards:145,si:9},{n:7,par:3,yards:190,si:3},{n:8,par:4,yards:310,si:15},{n:9,par:4,yards:303,si:7},{n:10,par:4,yards:340,si:12},{n:11,par:3,yards:114,si:6},{n:12,par:4,yards:244,si:14},{n:13,par:3,yards:149,si:4},{n:14,par:4,yards:126,si:16},{n:15,par:4,yards:246,si:2},{n:16,par:3,yards:92,si:18},{n:17,par:3,yards:140,si:10},{n:18,par:4,yards:268,si:8}]
+  },
+  { name:"Three Locks", par:70, front:35, back:35, yards:5720,
+    holes:[{n:1,par:4,yards:386,si:5},{n:2,par:3,yards:89,si:19},{n:3,par:4,yards:307,si:9},{n:4,par:4,yards:383,si:1},{n:5,par:4,yards:386,si:3},{n:6,par:3,yards:151,si:13},{n:7,par:5,yards:446,si:11},{n:8,par:4,yards:515,si:7},{n:9,par:3,yards:143,si:15},{n:10,par:3,yards:155,si:18},{n:11,par:5,yards:452,si:8},{n:12,par:4,yards:385,si:6},{n:13,par:4,yards:381,si:10},{n:14,par:3,yards:211,si:2},{n:15,par:4,yards:472,si:4},{n:16,par:4,yards:370,si:12},{n:17,par:3,yards:158,si:16},{n:18,par:4,yards:350,si:4}]
+  },
+  { name:"Weston Turville", par:69, front:34, back:35, yards:5583,
+    holes:[{n:1,par:4,yards:362,si:4},{n:2,par:4,yards:389,si:4},{n:3,par:3,yards:140,si:12},{n:4,par:3,yards:112,si:18},{n:5,par:4,yards:384,si:2},{n:6,par:3,yards:166,si:6},{n:7,par:4,yards:445,si:14},{n:8,par:4,yards:296,si:8},{n:9,par:4,yards:300,si:10},{n:10,par:3,yards:168,si:7},{n:11,par:5,yards:500,si:17},{n:12,par:4,yards:324,si:11},{n:13,par:4,yards:384,si:3},{n:14,par:4,yards:335,si:15},{n:15,par:4,yards:382,si:1},{n:16,par:3,yards:283,si:13},{n:17,par:4,yards:325,si:13},{n:18,par:4,yards:397,si:9}]
+  },
+  { name:"Whipsnade", par:73, front:37, back:36, yards:6469,
+    holes:[{n:1,par:5,yards:436,si:12},{n:2,par:4,yards:357,si:8},{n:3,par:3,yards:144,si:18},{n:4,par:5,yards:492,si:10},{n:5,par:4,yards:403,si:2},{n:6,par:4,yards:455,si:16},{n:7,par:3,yards:165,si:14},{n:8,par:4,yards:400,si:6},{n:9,par:4,yards:400,si:4},{n:10,par:4,yards:376,si:9},{n:11,par:5,yards:538,si:8},{n:12,par:4,yards:397,si:1},{n:13,par:3,yards:164,si:13},{n:14,par:4,yards:367,si:11},{n:15,par:4,yards:396,si:5},{n:16,par:4,yards:375,si:3},{n:17,par:3,yards:147,si:17},{n:18,par:4,yards:457,si:15}]
+  },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────
+const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : "—";
+const fmtD = s => {
+  if (!s) return "—";
+  const parts = String(s).split("-");
+  // Only format if it's a genuine YYYY-MM-DD shape; otherwise show the raw
+  // value as-is rather than producing "undefined/undefined/..." — this
+  // makes any future date-parsing gap visible and debuggable instead of
+  // silently displaying broken output.
+  if (parts.length === 3 && /^\d{4}$/.test(parts[0]) && /^\d{1,2}$/.test(parts[1]) && /^\d{1,2}$/.test(parts[2])) {
+    const [y,m,d] = parts;
+    return `${d.padStart(2,"0")}/${m.padStart(2,"0")}/${y.slice(2)}`;
+  }
+  return String(s); // unrecognised format — show raw value, not garbage
+};
+const chipCls = d => d==null?"": d<=-2?"eagle": d===-1?"birdie": d===0?"par": d===1?"bogey":"double";
+const chipLbl = d => d==null?"—": d===0?"E": d>0?`+${d}`:`${d}`;
+
+// Sync writes directly onto ALL_COURSES (hole pars, sheetAvgToPar, yards,
+// par-count breakdowns), which is otherwise a shared module-level object.
+// A snapshot taken once at load time lets "Reset All Data" restore course
+// metadata to its original state too — previously, reset only cleared the
+// rounds list, while ALL_COURSES stayed permanently mutated from whatever
+// was last synced, so the "fresh" baseline silently came back corrupted.
+const PRISTINE_COURSES = JSON.parse(JSON.stringify(ALL_COURSES));
+function restorePristineCourses() {
+  ALL_COURSES.forEach((cd, ci) => {
+    const pristine = PRISTINE_COURSES[ci];
+    cd.par = pristine.par;
+    cd.yards = pristine.yards;
+    cd.par3s = pristine.par3s;
+    cd.par4s = pristine.par4s;
+    cd.par5s = pristine.par5s;
+    cd.holes.forEach((h, hi) => {
+      h.par = pristine.holes[hi].par;
+      h.yards = pristine.holes[hi].yards;
+      h.si = pristine.holes[hi].si;
+      h.sheetAvgToPar = pristine.holes[hi].sheetAvgToPar;
+    });
+  });
+}
+
+function buildRounds() {
+  // Hole-by-hole data comes ONLY from JSON sync, never from hardcoded data.
+  // Previously the course objects contained round data read from screenshots
+  // which was often inaccurate (e.g. misread scores). Now buildRounds just
+  // sets up the baseline round list with summary-level data; hole data is
+  // populated when the user syncs each course tab from their Google Sheet.
+  return ROUNDS_RAW.map(r => {
+    const cd = ALL_COURSES.find(c=>c.name===r.course);
+    return {...r, par: cd?.par || 72, detailLoaded: false};
+  });
+}
+
+function holeStats(cd, cRounds) {
+  // Only count a round's hole-by-hole scores toward birdie/par/bogey totals
+  // if that round has a FULL set of 18 hole scores. Previously, rounds with
+  // partial/missing hole data (e.g. from an incomplete sync) were silently
+  // included anyway via parseInt/isNaN filtering — which let the headline
+  // "avg to par" (sourced straight from the sheet) and the birdie/bogey
+  // counts (recalculated locally from possibly-incomplete hole arrays)
+  // drift out of sync with each other, even though both looked plausible.
+  const completeRounds = cRounds.filter(r =>
+    r.holes && r.holes.filter(h => h !== "" && h != null && !isNaN(parseInt(h))).length === 18
+  );
+  const incompleteCount = cRounds.length - completeRounds.length;
+
+  return cd.holes.map((hole,i)=>{
+    const scores=completeRounds.map(r=>parseInt(r.holes[i])).filter(s=>!isNaN(s)&&s>0);
+    const toPars=scores.map(s=>s-hole.par);
+    const calcAtp=toPars.length?toPars.reduce((a,b)=>a+b,0)/toPars.length:null;
+    // Prefer the avg to par recorded in your Google Sheet (more accurate than screenshot-read scores)
+    const atp = hole.sheetAvgToPar != null ? hole.sheetAvgToPar : calcAtp;
+    const avgScore = hole.sheetAvgToPar != null ? (hole.par + hole.sheetAvgToPar).toFixed(2)
+                   : scores.length?(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2):null;
+    return {...hole,
+      avgScore,
+      avgToPar:atp!=null?atp.toFixed(2):null,
+      best:scores.length?Math.min(...scores):null,
+      worst:scores.length?Math.max(...scores):null,
+      eagles:toPars.filter(d=>d<=-2).length,
+      birdies:toPars.filter(d=>d===-1).length,
+      pars:toPars.filter(d=>d===0).length,
+      bogeys:toPars.filter(d=>d===1).length,
+      doubles:toPars.filter(d=>d===2).length,
+      triples:toPars.filter(d=>d===3).length,
+      quads:toPars.filter(d=>d>=4).length,
+      _roundsCounted: completeRounds.length,
+      _roundsExcluded: incompleteCount,
+    };
+  });
+}
+
+// ── Chip component ────────────────────────────────────────────────
+function Chip({diff, score, small}) {
+  const cls = chipCls(diff);
+  const colors = {
+    eagle:{bg:"#fef9c3",col:"#713f12"},
+    birdie:{bg:"#dcfce7",col:"#14532d"},
+    par:{bg:"#f1f5f9",col:"#475569"},
+    bogey:{bg:"#fee2e2",col:"#7f1d1d"},
+    double:{bg:"#7f1d1d",col:"#fff"},
+  };
+  const {bg="#f1f5f9",col=INM} = colors[cls]||{};
+  return (
+    <span style={{display:"inline-block",padding:small?"1px 5px":"2px 7px",borderRadius:12,fontWeight:600,
+      fontFamily:"'IBM Plex Mono',monospace",fontSize:small?10:11,background:bg,color:col}}>
+      {score!=null ? score : chipLbl(diff)}
+    </span>
+  );
+}
+
+// ── Line chart with trend line ────────────────────────────────────
+function linReg(pts) {
+  const n=pts.length; if(n<2) return null;
+  const sx=pts.reduce((a,_,i)=>a+i,0), sy=pts.reduce((a,p)=>a+p.y,0);
+  const sxy=pts.reduce((a,p,i)=>a+i*p.y,0), sx2=pts.reduce((a,_,i)=>a+i*i,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx), b=(sy-m*sx)/n;
+  return {m,b};
+}
+
+function LineChart({points, color=GL, dec=0, height=70, showTrend=true}) {
+  if(!points.length) return null;
+  const W=300,PL=30,PR=6,PT=6,PB=18,iW=W-PL-PR,iH=height-PT-PB;
+  const ys=points.map(p=>p.y), mn=Math.min(...ys)-0.5, mx=Math.max(...ys)+0.5, range=mx-mn||1;
+  const xp=i=>PL+i*(iW/(points.length-1||1));
+  const yp=v=>Math.max(PT, Math.min(PT+iH, PT+iH-((v-mn)/range*iH)));
+  const d=points.map((p,i)=>`${i===0?"M":"L"}${xp(i).toFixed(1)},${yp(p.y).toFixed(1)}`).join(" ");
+  const area=d+` L${xp(points.length-1).toFixed(1)},${(PT+iH).toFixed(1)} L${PL},${(PT+iH).toFixed(1)} Z`;
+  const reg = showTrend && points.length>=3 ? linReg(points) : null;
+  const trendD = reg ? `M${xp(0).toFixed(1)},${yp(reg.b).toFixed(1)} L${xp(points.length-1).toFixed(1)},${yp(reg.m*(points.length-1)+reg.b).toFixed(1)}` : null;
+  // trend colour: improving (lower score/hcp) = green, worsening = red
+  const trendImproving = reg ? reg.m < 0 : true;
+  const trendColor = trendImproving ? "#52B788" : "#E07070";
+  const uid = color.replace("#","");
+  return (
+    <svg viewBox={`0 0 ${W} ${height}`} style={{width:"100%",height,display:"block",overflow:"visible"}}>
+      <defs>
+        <linearGradient id={`g${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0.01"/>
+        </linearGradient>
+      </defs>
+      <line x1={PL} y1={PT} x2={PL} y2={PT+iH} stroke={CRD} strokeWidth="1"/>
+      <line x1={PL} y1={PT+iH} x2={W-PR} y2={PT+iH} stroke={CRD} strokeWidth="1"/>
+      {[mn+0.5,mx-0.5].map((v,i)=>(
+        <text key={i} x={PL-3} y={yp(v)} textAnchor="end" dominantBaseline="middle" fontSize="8" fill={INL} fontFamily="IBM Plex Mono">{v.toFixed(dec)}</text>
+      ))}
+      {[0,Math.floor((points.length-1)/2),points.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>(
+        <text key={i} x={xp(i)} y={height-3} textAnchor="middle" fontSize="8" fill={INL} fontFamily="IBM Plex Mono">{points[i].x}</text>
+      ))}
+      <path d={area} fill={`url(#g${uid})`}/>
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" strokeOpacity="0.7"/>
+      {trendD && <path d={trendD} fill="none" stroke={trendColor} strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round"/>}
+      {points.map((p,i)=>(
+        <circle key={i} cx={xp(i)} cy={yp(p.y)} r="2.5" fill={color} stroke="#fff" strokeWidth="1">
+          <title>{p.x}: {p.y.toFixed(dec)}</title>
+        </circle>
+      ))}
+      {trendD && (
+        <text x={W-PR-2} y={yp(reg.m*(points.length-1)+reg.b)-5} textAnchor="end" fontSize="8" fill={trendColor} fontFamily="IBM Plex Mono" fontWeight="500">
+          {trendImproving?"↓ improving":"↑ rising"}
+        </text>
+      )}
+    </svg>
+  );
+}
+
+// ── Styles ────────────────────────────────────────────────────────
+const S = {
+  app:{maxWidth:1100,margin:"0 auto",paddingBottom:60,fontFamily:"'Inter',sans-serif"},
+  hdr:{background:G,padding:"10px 14px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"},
+  title:{fontFamily:"'Baloo 2',cursive",fontSize:"clamp(22px,5vw,38px)",fontWeight:900,color:CR,lineHeight:1},
+  sub:{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:GL,letterSpacing:2,textTransform:"uppercase",marginTop:4},
+  hcpLbl:{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:GL,letterSpacing:2,textTransform:"uppercase",textAlign:"right"},
+  hcpVal:{fontFamily:"'Baloo 2',cursive",fontSize:34,fontWeight:700,color:BR,lineHeight:1,textAlign:"right"},
+  body:{background:CR},
+  tabsWrap:{position:"sticky",top:0,zIndex:100,background:CRD,borderBottom:`2px solid #d4c9b0`,boxShadow:"0 2px 6px rgba(0,0,0,.08)"},
+  tabs:{display:"flex",overflowX:"auto",WebkitOverflowScrolling:"touch",scrollbarWidth:"none"},
+  tab:{padding:"11px 14px",fontSize:12,fontWeight:600,color:INM,cursor:"pointer",border:"none",background:"none",borderBottom:"3px solid transparent",whiteSpace:"nowrap",flexShrink:0,fontFamily:"'Inter',sans-serif"},
+  tabA:{color:G,borderBottomColor:BR,background:CR},
+  sec:{padding:"16px 14px"},
+  secTitle:{fontFamily:"'Baloo 2',cursive",fontSize:17,fontWeight:700,color:G,marginBottom:14,display:"flex",alignItems:"center",gap:8},
+  card:{background:WH,border:"1px solid #ddd6c4",borderRadius:8,padding:"12px 14px",borderLeft:`4px solid ${BR}`},
+  cardG:{background:WH,border:"1px solid #ddd6c4",borderRadius:8,padding:"12px 14px",borderLeft:`4px solid ${GL}`},
+  lbl:{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4},
+  val:{fontFamily:"'Baloo 2',cursive",fontSize:26,fontWeight:700,color:G,lineHeight:1},
+  sub2:{fontSize:10,color:INL,marginTop:3},
+  tw:{overflowX:"auto",WebkitOverflowScrolling:"touch",borderRadius:6,border:"1px solid #ddd6c4"},
+  tbl:{width:"100%",borderCollapse:"collapse",fontSize:12,background:WH},
+  th:{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,letterSpacing:1,textTransform:"uppercase",color:INL,padding:"8px 9px",textAlign:"left",borderBottom:`2px solid ${CRD}`,whiteSpace:"nowrap",background:CR},
+  td:{padding:"9px 9px",borderBottom:`1px solid ${CRD}`,verticalAlign:"middle"},
+  aiBox:{background:G,borderRadius:10,padding:18,marginBottom:18},
+  inp:{flex:1,minWidth:140,background:"rgba(255,255,255,.12)",border:"1px solid rgba(255,255,255,.2)",borderRadius:6,padding:"8px 11px",color:CR,fontSize:14,fontFamily:"'Inter',sans-serif",outline:"none"},
+  btnB:{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",border:"none",fontFamily:"'Inter',sans-serif",background:BR,color:G},
+  btnG:{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",border:`1px solid ${GM}`,fontFamily:"'Inter',sans-serif",background:G,color:CR},
+  btnO:{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",border:`1px solid ${G}`,fontFamily:"'Inter',sans-serif",background:"transparent",color:G},
+  field:{display:"flex",flexDirection:"column",gap:4},
+  fLabel:{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,letterSpacing:1.5,textTransform:"uppercase",color:INM},
+  fInput:{padding:"7px 9px",border:"1px solid #d4c9b0",borderRadius:6,fontSize:13,fontFamily:"'Inter',sans-serif",color:INK,background:WH,outline:"none"},
+};
+
+// ── App ───────────────────────────────────────────────────────────
+function App() {
+  const [rounds, setRounds] = useState(buildRounds()); // baseline; overwritten by storage on mount
+  const [storageLoaded, setStorageLoaded] = useState(false);
+  const [tab, setTab] = useState("dashboard");
+  const [courseFilter, setCourseFilter] = useState("All");
+  const [selCourse, setSelCourse] = useState("Tinsley");
+  const [aiQ, setAiQ] = useState(""); const [aiR, setAiR] = useState(""); const [aiLoad, setAiLoad] = useState(false);
+  const [logForm, setLogForm] = useState({date:new Date().toISOString().slice(0,10),course:"",tees:"White",par:72,courseRating:"",slope:"",holes:Array(18).fill(""),fairways:Array(18).fill(""),gir:Array(18).fill(""),putts:Array(18).fill(""),notes:""});
+  const [sheetUrls, setSheetUrls] = useState({});
+  const [syncSt, setSyncSt] = useState({});
+  const [pasteIn, setPasteIn] = useState(""); const [pasteLoad, setPasteLoad] = useState(false); const [pasteMsg, setPasteMsg] = useState("");
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [pieCourseFlt, setPieCourseFlt] = useState("All");
+
+  // Load from persistent artifact storage on mount
+  useEffect(()=>{
+    async function load() {
+      try {
+        const r = (() => { try { const v = localStorage.getItem("fl:rounds"); return v ? {value: v} : null; } catch { return null; } })();
+        if (r?.value) setRounds(JSON.parse(r.value));
+      } catch {} // key doesn't exist yet — keep baseline
+      try {
+        const u = (() => { try { const v = localStorage.getItem("fl:urls"); return v ? {value: v} : null; } catch { return null; } })();
+        if (u?.value) setSheetUrls(JSON.parse(u.value));
+      } catch {} // key doesn't exist yet — keep empty
+      setStorageLoaded(true);
+    }
+    load();
+  }, []);
+
+  // Persist rounds to artifact storage whenever they change (after initial load)
+  useEffect(()=>{
+    if (!storageLoaded) return; // don't overwrite storage before we've loaded it
+    async function save() {
+      try { localStorage.setItem("fl:rounds", JSON.stringify(rounds)); } catch {}
+    }
+    save();
+  }, [rounds, storageLoaded]);
+
+  // Persist URLs to artifact storage
+  useEffect(()=>{
+    if (!storageLoaded) return;
+    async function save() {
+      try { localStorage.setItem("fl:urls", JSON.stringify(sheetUrls)); } catch {}
+    }
+    save();
+  }, [sheetUrls, storageLoaded]);
+  useEffect(()=>{
+    if (document.getElementById("ggh-fonts")) return;
+    const link = document.createElement("link");
+    link.id = "ggh-fonts";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap";
+    document.head.appendChild(link);
+  },[]);
+
+  const allScores = rounds.map(r=>r.totalScore).filter(Boolean);
+  const cStats = ALL_COURSES.map(c=>{
+    const cr=rounds.filter(r=>r.course===c.name), sc=cr.map(r=>r.totalScore).filter(Boolean);
+    const best = sc.length?Math.min(...sc):null;
+    const worst = sc.length?Math.max(...sc):null;
+    return {course:c.name,par:c.par,played:cr.length,
+      avg:sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):"—",
+      best: best ?? "—", bestToPar: best!=null ? best-c.par : null,
+      worst: worst ?? "—", worstToPar: worst!=null ? worst-c.par : null,
+      last:cr.length?cr[cr.length-1].date:"—"};
+  }).filter(c=>c.played>0).sort((a,b)=>b.played-a.played);
+  const filtered = courseFilter==="All"?[...rounds].sort((a,b)=>b.date.localeCompare(a.date)):[...rounds].filter(r=>r.course===courseFilter).sort((a,b)=>b.date.localeCompare(a.date));
+  const holeTotal = logForm.holes.reduce((s,h)=>s+(parseInt(h)||0),0);
+
+  // AI Caddie
+  async function askAI() {
+    if(aiLoad||!aiQ.trim()) return;
+    setAiLoad(true); setAiR("");
+    const ctx = allScores.length
+      ? `${rounds.length} rounds, hcp 13.5, avg ${avg(allScores)}, best ${Math.min(...allScores)}. Courses: ${cStats.map(c=>`${c.course} ${c.played}x avg ${c.avg} par ${c.par}`).join("; ")}.`
+      : "No rounds logged yet.";
+    try {
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:800,system:"Expert golf coach. Concise specific advice. No headers. Under 180 words.",messages:[{role:"user",content:`${ctx}\n\n${aiQ}`}]})});
+      const d=await res.json();
+      setAiR(d.content?.map(c=>c.text||"").join("")||"No response.");
+    } catch { setAiR("Could not reach AI — check connection."); }
+    setAiLoad(false);
+  }
+
+  // Import raw JSON from Apps Script browser fetch
+  async function importJSON() {
+    if(!pasteIn.trim()) return;
+    setPasteLoad(true); setPasteMsg("");
+    try {
+      const raw = pasteIn.trim();
+      const start = raw.indexOf("{"), end = raw.lastIndexOf("}");
+      if (start === -1) throw new Error("No JSON found — copy the full browser response");
+      const parsed = JSON.parse(raw.slice(start, end + 1));
+
+      // Handle wrapped response: {ok:true, sheet:"X", data:{...}}
+      const payload = parsed.ok && parsed.data ? parsed.data : parsed;
+      const sheetName = parsed.sheet || "";
+
+      if (payload.type === "scores") {
+        const imp = payload.rounds.filter(r=>r.course&&r.score).map((r,i)=>({
+          id: Date.now()+i, date:r.date, course:r.course,
+          totalScore:r.score, scoreToPar:r.scoreToPar,
+          handicapCounting:r.handicapCounting, handicapAfter:r.handicapAfter,
+          par:72, holes:Array(18).fill(""), front9:null, back9:null,
+          detailLoaded:false, fromSheet:true,
+        }));
+        setRounds(p=>[...p.filter(r=>!r.fromSheet),...imp]);
+        setPasteMsg(`✓ Imported ${imp.length} rounds from ${sheetName}`);
+
+      } else if (payload.type === "course") {
+        // Course-name matching is case/whitespace-insensitive: if the Apps
+        // Script "sheet" name has different capitalisation or stray spaces
+        // versus ALL_COURSES (e.g. "bulwell forest" vs "Bulwell Forest"),
+        // a strict === match silently fails — the rounds still get created
+        // but never line up with any course in the picker, so they vanish
+        // from Course Stats even though the import reported success.
+        const normalise = s => String(s||"").trim().toLowerCase().replace(/\s+/g," ");
+        const cd = ALL_COURSES.find(c => normalise(c.name) === normalise(sheetName));
+        const courseName = cd ? cd.name : sheetName; // always store using OUR canonical name
+
+        // De-dupe holes by hole number and clamp to 1-18, in case the sheet
+        // parser picked up an extra row (e.g. a stray "19")
+        const seen = new Set();
+        const cleanHoles = (payload.holes||[]).filter(h => {
+          if (!h.n || h.n < 1 || h.n > 18 || seen.has(h.n)) return false;
+          seen.add(h.n); return true;
+        }).sort((a,b)=>a.n-b.n);
+
+        // Update par AND avgToPar from sheet — previously only avgToPar was
+        // pulled in, so a wrong hardcoded par (e.g. a hole listed as par 4
+        // when it's actually par 5) never got corrected, which silently
+        // skewed every birdie/bogey calculation for that hole.
+        if (cd && cleanHoles.length) {
+          cleanHoles.forEach((h) => {
+            const idx = h.n - 1;
+            if (cd.holes[idx]) {
+              if (h.par) cd.holes[idx].par = h.par;
+              if (h.avgToPar != null) cd.holes[idx].sheetAvgToPar = h.avgToPar;
+            }
+          });
+        }
+
+        // FULL REPLACE, not merge: previous versions tried to match each
+        // sheet round to an existing round by date (falling back to score),
+        // which was fragile — any date-format drift or earlier bad sync
+        // could leave duplicate/stray rounds behind that never got cleaned
+        // up, silently inflating birdie/bogey counts. Instead, every course
+        // sync now wipes ALL existing rounds for that course and rebuilds
+        // them fresh, purely from what the sheet says right now. The sheet
+        // is the single source of truth — no merging, no matching, no
+        // chance of stale duplicates surviving a sync.
+        const freshRounds = (payload.rounds||[])
+          .filter(rd => rd.holes && rd.holes.some(h => h != null))
+          .map((rd, i) => {
+            const holesArr = rd.holes.slice(0, 18).map(s => s != null ? String(s) : "");
+            while (holesArr.length < 18) holesArr.push("");
+            const total = rd.total || holesArr.reduce((s,h)=>s+(parseInt(h)||0),0);
+            const coursePar = payload.totalPar || cd?.par || 72;
+            return {
+              id: `${courseName}-${rd.date}-${i}-${Date.now()}`,
+              date: rd.date,
+              course: courseName,
+              totalScore: total,
+              scoreToPar: total ? total - coursePar : null,
+              handicapCounting: null,
+              handicapAfter: null,
+              par: coursePar,
+              holes: holesArr,
+              front9: rd.front9,
+              back9: rd.back9,
+              detailLoaded: true,
+              fromSheet: true,
+            };
+          });
+
+        setRounds(prev => [
+          ...prev.filter(r => r.course !== courseName), // drop every old round for this course
+          ...freshRounds,                                 // replace with exactly what the sheet says
+        ]);
+
+        const holeCountMsg = cleanHoles.length !== (payload.holes?.length||0)
+          ? ` (cleaned from ${payload.holes.length} → ${cleanHoles.length})` : "";
+        const noMatchMsg = !cd ? ` — ⚠️ "${sheetName}" doesn't match any known course, check the tab name` : "";
+        setPasteMsg(`✓ Loaded ${cleanHoles.length} holes, ${freshRounds.length} rounds for ${courseName}${holeCountMsg}${noMatchMsg}`);
+      } else if (payload.type === "courseInfo") {
+        // Update par-3/4/5 counts and par/yards for each course from the Course Info tab
+        let updated = 0;
+        payload.courses.forEach(ci => {
+          const cd = ALL_COURSES.find(c => c.name.toLowerCase() === ci.course.toLowerCase()
+            || c.name.toLowerCase().replace(/e$/,"") === ci.course.toLowerCase().replace(/e$/,"")); // handles "Concord"/"Concorde" mismatch
+          if (cd) {
+            if (ci.par)   cd.par   = ci.par;
+            if (ci.yards) cd.yards = ci.yards;
+            cd.par3s = ci.par3s; cd.par4s = ci.par4s; cd.par5s = ci.par5s;
+            updated++;
+          }
+        });
+        setPasteMsg(`✓ Updated course info for ${updated} of ${payload.courses.length} courses`);
+      } else {
+        throw new Error("Unrecognised data format — make sure you copy the full JSON");
+      }
+      setPasteIn("");
+    } catch(e) {
+      setPasteMsg(`✗ ${e.message}`);
+    }
+    setPasteLoad(false);
+  }
+
+  // Import CSV paste
+  async function importPaste() {
+    if(pasteLoad||!pasteIn.trim()) return;
+    setPasteLoad(true); setPasteMsg("");
+    try {
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,system:"Parse golf data. Return ONLY JSON array: [{date,course,totalScore,scoreToPar,handicapCounting,handicapAfter}]. Dates YYYY-MM-DD. Numbers as numbers. JSON only.",messages:[{role:"user",content:pasteIn}]})});
+      const d=await res.json();
+      const parsed=JSON.parse(d.content?.map(c=>c.text||"").join("").replace(/```json|```/g,"").trim()||"[]");
+      const imp=parsed.map((r,i)=>({...logForm,...r,id:Date.now()+i,detailLoaded:false,par:72,holes:Array(18).fill(""),front9:null,back9:null}));
+      setRounds(p=>[...p.filter(r=>!r.fromSheet),...imp]);
+      setPasteMsg(`✓ Imported ${imp.length} rounds`); setPasteIn("");
+    } catch { setPasteMsg("✗ Could not parse."); }
+    setPasteLoad(false);
+  }
+
+  // Sync via Google Apps Script
+  function setSt(key,patch){setSyncSt(p=>({...p,[key]:{...(p[key]||{}),...patch}}));}
+
+  async function syncViaScript(scriptUrl, sheetName) {
+    // Direct fetch with mode cors — Apps Script deployed as "Anyone" 
+    // does send CORS headers on the final redirected response
+    const targetUrl = `${scriptUrl}?sheet=${encodeURIComponent(sheetName)}`;
+    
+    // Try direct fetch (works in Safari/Chrome where CORS is properly handled)
+    const res = await fetch(targetUrl, {
+      method: "GET",
+      redirect: "follow",
+    });
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status} — check script is deployed as Anyone`);
+    const text = await res.text();
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start === -1) throw new Error("No JSON returned — open this URL in your browser to test: " + targetUrl);
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    if (parsed.error) throw new Error(parsed.error);
+    if (parsed.ok && parsed.data) return parsed.data;
+    return parsed;
+  }
+
+  async function syncTab(key, scriptUrl) {
+    if(!scriptUrl?.trim()) return;
+    setSt(key,{loading:true,msg:""});
+    try {
+      // key "summary" → sheet name "Summary", others → match course name
+      // Map key to exact sheet tab name
+      const SHEET_NAME_MAP = {
+        "summary": "Summary",
+        "tinsley": "Tinsley",
+        "aylesbury-vale": "Aylesbury Vale",
+        "bulwell-forest": "Bulwell Forest",
+        "bulwell-hall": "Bulwell Hall",
+        "concord": "Concord",
+        "three-locks": "Three Locks",
+        "weston-turville": "Weston Turville",
+        "whipsnade": "Whipsnade",
+      };
+      const sheetName = SHEET_NAME_MAP[key] || ALL_COURSES.find(c=>c.name.toLowerCase().replace(/\s+/g,"-")===key)?.name || key;
+
+      const data = await syncViaScript(scriptUrl.trim(), sheetName);
+
+      if (data.type === "scores") {
+        // Summary tab — update round list
+        const imp = data.rounds.filter(r=>r.course&&r.score).map((r,i)=>({
+          id: Date.now()+i, date:r.date, course:r.course,
+          totalScore:r.score, scoreToPar:r.scoreToPar,
+          handicapCounting:r.handicapCounting, handicapAfter:r.handicapAfter,
+          par:72, holes:Array(18).fill(""), front9:null, back9:null,
+          detailLoaded:false, fromSheet:true,
+        }));
+        setRounds(p=>[...p.filter(r=>!r.fromSheet),...imp]);
+        setSt(key,{loading:false,msg:`✓ ${imp.length} rounds synced`,
+          lastSync:new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})});
+
+      } else if (data.type === "course") {
+        // Course tab — update hole-by-hole data and merge into rounds
+        const courseName = sheetName;
+        const cd = ALL_COURSES.find(c=>c.name===courseName);
+
+        // Update hole avgToPar values from sheet
+        if (cd && data.holes.length) {
+          data.holes.forEach((h,i) => {
+            if (cd.holes[i] && h.avgToPar != null) cd.holes[i].sheetAvgToPar = h.avgToPar;
+          });
+        }
+
+        // Merge round hole data
+        if (data.rounds.length) {
+          setRounds(prev => prev.map(r => {
+            if (r.course !== courseName) return r;
+            const rd = data.rounds.find(d => d.date === r.date);
+            if (!rd || !rd.holes) return r;
+            return { ...r,
+              holes: rd.holes.map(s => s != null ? String(s) : ""),
+              par: data.totalPar || r.par,
+              front9: rd.front9, back9: rd.back9,
+              detailLoaded: true,
+            };
+          }));
+        }
+        setSt(key,{loading:false,msg:`✓ ${data.holes.length} holes, ${data.rounds.length} rounds synced`,
+          lastSync:new Date().toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})});
+      } else {
+        setSt(key,{loading:false,msg:"✓ Data received (unrecognised format)"});
+      }
+    } catch(e) {
+      setSt(key,{loading:false,msg:`✗ ${e.message}`});
+    }
+  }
+
+  async function syncAll(){
+    const url = sheetUrls["master"]||"";
+    if(!url){setSt("master",{loading:false,msg:"✗ Paste your Apps Script URL first"});return;}
+    const keys=["summary",...ALL_COURSES.map(c=>c.name.toLowerCase().replace(/\s+/g,"-"))];
+    for(const k of keys) await syncTab(k, url);
+  }
+
+  // Course stats helper
+  const cd = ALL_COURSES.find(c=>c.name===selCourse);
+  const cRounds = rounds.filter(r=>r.course===selCourse&&r.detailLoaded);
+  const hs = cd?holeStats(cd,cRounds):[];
+  const byPar = p=>{const h=hs.filter(h=>h.par===p&&h.avgToPar!=null);return h.length?(h.reduce((a,x)=>a+parseFloat(x.avgToPar),0)/h.length).toFixed(2):"—";};
+  const f9s=cRounds.map(r=>r.front9).filter(Boolean), b9s=cRounds.map(r=>r.back9).filter(Boolean);
+  const sortedH=[...hs].filter(h=>h.avgToPar!=null).sort((a,b)=>parseFloat(a.avgToPar)-parseFloat(b.avgToPar));
+
+  const divider = <div style={{...S.secTitle,marginTop:16}}><div style={{flex:1,height:1,background:CRD}}/></div>;
+
+  return (
+    <div style={S.app}>
+      {/* Header */}
+      <header style={S.hdr}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <img src={LOGO_SRC} alt="Glover Golf Hub" style={{height:84,width:"auto",display:"block",margin:"-6px 0"}}/>
+          <div>
+            <div style={S.sub}>{rounds.length} rounds · {new Set(rounds.map(r=>r.course)).size} courses</div>
+          </div>
+        </div>
+        <div>
+          <div style={S.hcpLbl}>Handicap</div>
+          <div style={S.hcpVal}>13.5</div>
+        </div>
+      </header>
+
+      <div style={S.body}>
+        {!storageLoaded && (
+          <div style={{padding:"32px 16px",textAlign:"center",color:INL,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,letterSpacing:1}}>
+            <div style={{width:20,height:20,border:`2px solid ${GL}`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 10px"}}/>
+            LOADING YOUR DATA…
+          </div>
+        )}
+        {storageLoaded && <>
+        {/* Tabs */}
+        <div style={S.tabsWrap}>
+          <div style={S.tabs}>
+            {[["dashboard","📊 Dashboard"],["rounds","📋 Rounds"],["courses","⛳ Courses"],["stats","📈 Course Stats"],["log","✏️ Log"],["sync","🔄 Sync"]].map(([id,lbl])=>(
+              <button key={id} style={{...S.tab,...(tab===id?S.tabA:{})}} onClick={()=>setTab(id)}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── DASHBOARD ── */}
+        {tab==="dashboard" && (
+          <div style={S.sec}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:18}}>
+              {[
+                [false,"Rounds",rounds.length,`${new Set(rounds.map(r=>r.course)).size} courses`],
+                [true,"Best Score",allScores.length?Math.min(...allScores):"—","—"],
+                [false,"Avg Score",avg(allScores),"see Avg to Par below"],
+                [true,"Handicap","13.5","WHS · Jun '26"],
+                [false,"Most Played",cStats[0]?.course||"—",`${cStats[0]?.played||0} rounds`],
+                [true,"Avg to Par",rounds.length?`+${avg(rounds.map(r=>r.scoreToPar).filter(v=>v!=null))}`:"—",`per-course par · ${rounds.length} rounds`],
+              ].map(([g,lbl,val,sub],i)=>(
+                <div key={i} style={g?S.cardG:S.card}>
+                  <div style={S.lbl}>{lbl}</div>
+                  <div style={{...S.val,fontSize:typeof val==="string"&&val.length>4?18:26}}>{val}</div>
+                  <div style={S.sub2}>{sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Score trend */}
+            <div style={{...S.secTitle}}>Score Trend</div>
+            <div style={{background:WH,border:"1px solid #ddd6c4",borderRadius:8,padding:"12px 12px 6px",marginBottom:14}}>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,letterSpacing:1,marginBottom:6}}>SCORE PER ROUND (chronological)</div>
+              <LineChart points={[...rounds].sort((a,b)=>a.date.localeCompare(b.date)).filter(r=>r.totalScore).map(r=>({x:fmtD(r.date),y:r.totalScore}))} color={GM}/>
+            </div>
+
+            {/* HCP trend */}
+            <div style={S.secTitle}>Handicap Trend</div>
+            <div style={{background:WH,border:"1px solid #ddd6c4",borderRadius:8,padding:"12px 12px 6px",marginBottom:18}}>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,letterSpacing:1,marginBottom:6}}>HANDICAP PROGRESSION</div>
+              <LineChart points={HCP_SERIES.map(p=>({x:p.r,y:p.v}))} color={BR} dec={1}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:INL,fontFamily:"'IBM Plex Mono',monospace",marginTop:4}}>
+                <span>R34 (May '26) · 14.4</span><span>R40 (Jun '26) · 13.5</span>
+              </div>
+            </div>
+
+            {/* Last 5 */}
+            <div style={S.secTitle}>Last 5 Rounds</div>
+            <div style={S.tw}>
+              <table style={S.tbl}>
+                <thead><tr>{["Date","Course","Score","vs Par","HCP Score"].map(h=><th key={h} style={S.th}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {[...rounds].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(r=>{
+                    const cp=ALL_COURSES.find(c=>c.name===r.course)?.par||72;
+                    const stp=r.scoreToPar??(r.totalScore?r.totalScore-cp:null);
+                    return <tr key={r.id}>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>{fmtD(r.date)}</td>
+                      <td style={{...S.td,fontSize:12}}>{r.course}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{r.totalScore}</td>
+                      <td style={S.td}>{stp!=null?<Chip diff={stp}/>:"—"}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>{r.handicapCounting??"—"}</td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Hole classification pie chart */}
+            {(()=>{
+              const pieRounds = pieCourseFlt==="All"
+                ? rounds.filter(r=>r.detailLoaded)
+                : rounds.filter(r=>r.course===pieCourseFlt&&r.detailLoaded);
+              const cd_pie = pieCourseFlt!=="All" ? ALL_COURSES.find(c=>c.name===pieCourseFlt) : null;
+
+              // Count all hole outcomes across selected rounds
+              let counts = {eagle:0,birdie:0,par:0,bogey:0,double:0,triple:0,quad:0};
+              pieRounds.forEach(r=>{
+                const cd = ALL_COURSES.find(c=>c.name===r.course);
+                if(!cd) return;
+                r.holes.forEach((score,i)=>{
+                  const s=parseInt(score), p=cd.holes[i]?.par;
+                  if(isNaN(s)||!p||s<=0) return;
+                  const d=s-p;
+                  if(d<=-2) counts.eagle++;
+                  else if(d===-1) counts.birdie++;
+                  else if(d===0) counts.par++;
+                  else if(d===1) counts.bogey++;
+                  else if(d===2) counts.double++;
+                  else if(d===3) counts.triple++;
+                  else counts.quad++;
+                });
+              });
+              const total = Object.values(counts).reduce((a,b)=>a+b,0);
+              if(total===0) return null;
+
+              const segments = [
+                {key:"eagle",  label:"Eagle",    color:"#fef08a", textColor:"#713f12"},
+                {key:"birdie", label:"Birdie",   color:"#86efac", textColor:"#14532d"},
+                {key:"par",    label:"Par",      color:"#e2e8f0", textColor:"#475569"},
+                {key:"bogey",  label:"Bogey",    color:"#fca5a5", textColor:"#7f1d1d"},
+                {key:"double", label:"Double",   color:"#f87171", textColor:"#7f1d1d"},
+                {key:"triple", label:"Triple",   color:"#ef4444", textColor:"#fff"},
+                {key:"quad",   label:"Quad+",    color:"#7f1d1d", textColor:"#fff"},
+              ].filter(s=>counts[s.key]>0);
+
+              // Build SVG pie chart
+              const cx=80, cy=80, r=70;
+              let angle=-Math.PI/2;
+              const slices = segments.map(s=>{
+                const pct=counts[s.key]/total;
+                const sweep=pct*2*Math.PI;
+                const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+                angle+=sweep;
+                const x2=cx+r*Math.cos(angle), y2=cy+r*Math.sin(angle);
+                const large=sweep>Math.PI?1:0;
+                const midAngle=angle-sweep/2;
+                return {...s, pct, sweep, path:`M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`,
+                  midX:cx+(r*0.65)*Math.cos(midAngle), midY:cy+(r*0.65)*Math.sin(midAngle)};
+              });
+
+              return (<>
+                <div style={S.secTitle}>Hole Classifications</div>
+                <div style={{background:WH,border:"1px solid #ddd6c4",borderRadius:8,padding:"14px 14px",marginBottom:18}}>
+                  {/* Course filter */}
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+                    {["All",...new Set(rounds.filter(r=>r.detailLoaded).map(r=>r.course))].map(cname=>(
+                      <button key={cname} onClick={()=>setPieCourseFlt(cname)}
+                        style={{...pieCourseFlt===cname?S.btnG:S.btnO,fontSize:10,padding:"4px 10px"}}>
+                        {cname}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"center"}}>
+                    {/* Pie */}
+                    <svg viewBox="0 0 160 160" style={{width:140,height:140,flexShrink:0}}>
+                      {slices.map(s=>(
+                        <path key={s.key} d={s.path} fill={s.color} stroke="#fff" strokeWidth="1">
+                          <title>{s.label}: {counts[s.key]} ({(s.pct*100).toFixed(1)}%)</title>
+                        </path>
+                      ))}
+                      {slices.filter(s=>s.pct>0.07).map(s=>(
+                        <text key={s.key} x={s.midX.toFixed(1)} y={s.midY.toFixed(1)}
+                          textAnchor="middle" dominantBaseline="middle"
+                          fontSize="10" fontFamily="IBM Plex Mono" fontWeight="600" fill={s.textColor}>
+                          {(s.pct*100).toFixed(0)}%
+                        </text>
+                      ))}
+                    </svg>
+                    {/* Legend */}
+                    <div style={{flex:1,minWidth:120}}>
+                      {segments.map(s=>(
+                        <div key={s.key} style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
+                          <div style={{width:12,height:12,borderRadius:3,background:s.color,border:"1px solid rgba(0,0,0,.1)",flexShrink:0}}/>
+                          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,flex:1}}>{s.label}</span>
+                          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:600}}>{counts[s.key]}</span>
+                          <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:INL,minWidth:38,textAlign:"right"}}>({(counts[s.key]/total*100).toFixed(1)}%)</span>
+                        </div>
+                      ))}
+                      <div style={{borderTop:`1px solid ${CRD}`,marginTop:6,paddingTop:5,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:INL}}>
+                        {total} holes from {pieRounds.length} rounds
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>);
+            })()}
+
+            {/* AI Caddie */}
+            <div style={{...S.aiBox,marginTop:18}}>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,background:BR,color:G,padding:"2px 7px",borderRadius:4,letterSpacing:1,fontWeight:500}}>AI CADDIE</span>
+              <span style={{fontFamily:"'Baloo 2',cursive",fontSize:15,fontWeight:700,color:CR,marginLeft:8}}>Ask About Your Game</span>
+              <div style={S.aiRow}>
+                <input style={S.inp} value={aiQ} onChange={e=>setAiQ(e.target.value)} onKeyDown={e=>e.key==="Enter"&&askAI()} placeholder="e.g. Which course suits me best?"/>
+                <button style={{...S.btnB,opacity:aiLoad?0.5:1}} onClick={askAI} disabled={aiLoad}>{aiLoad?"…":"Ask"}</button>
+              </div>
+              {aiLoad&&<div style={{color:GL,fontSize:12,marginTop:8}}>Analysing {rounds.length} rounds…</div>}
+              {aiR&&<div style={{marginTop:10,background:"rgba(255,255,255,.08)",borderRadius:6,padding:"10px 12px",fontSize:13,lineHeight:1.7,color:"rgba(245,240,232,.9)",whiteSpace:"pre-wrap"}}>{aiR}</div>}
+            </div>
+          </div>
+        )}
+
+        {/* ── ROUNDS ── */}
+        {tab==="rounds" && (
+          <div style={S.sec}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+              <div style={{...S.secTitle,margin:0,flex:1}}>All {rounds.length} Rounds</div>
+              <select style={{...S.fInput,fontSize:12,padding:"6px 10px"}} value={courseFilter} onChange={e=>setCourseFilter(e.target.value)}>
+                <option value="All">All Courses</option>
+                {ALL_COURSES.map(c=><option key={c.name}>{c.name}</option>)}
+              </select>
+            </div>
+            <div style={S.tw}>
+              <table style={S.tbl}>
+                <thead><tr>{["#","Date","Course","Score","vs Par","Crs Par","HCP Score","HCP After"].map(h=><th key={h} style={S.th}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {filtered.map(r=>{
+                    const cp=ALL_COURSES.find(c=>c.name===r.course)?.par||72;
+                    const stp=r.scoreToPar??(r.totalScore?r.totalScore-cp:null);
+                    return <tr key={r.id}>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",color:INL,fontSize:10}}>{r.id<=40?r.id:""}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>{fmtD(r.date)}</td>
+                      <td style={{...S.td,fontSize:12}}>{r.course}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{r.totalScore}</td>
+                      <td style={S.td}>{stp!=null?<Chip diff={stp}/>:"—"}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",color:INL,fontSize:11}}>{cp}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>{r.handicapCounting??"—"}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:BR,fontWeight:600}}>{r.handicapAfter??"—"}</td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── COURSES ── */}
+        {tab==="courses" && (
+          <div style={S.sec}>
+            <div style={S.secTitle}>By Course</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:18}}>
+              {cStats.map(c=>(
+                <div key={c.course} style={{...S.card,cursor:"pointer"}} onClick={()=>{setCourseFilter(c.course);setTab("rounds");}}>
+                  <div style={S.lbl}>{c.course}</div>
+                  <div style={{...S.val,fontSize:22}}>{c.avg}</div>
+                  <div style={S.sub2}>{c.played} rounds · par {c.par}</div>
+                  <div style={S.sub2}>best {c.best} · last {fmtD(c.last)}</div>
+                </div>
+              ))}
+            </div>
+            <div style={S.secTitle}>Summary</div>
+            <div style={S.tw}>
+              <table style={S.tbl}>
+                <thead><tr>{["Course","Rounds","Par","Avg","Best","Worst","Last"].map(h=><th key={h} style={S.th}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {cStats.map(c=>(
+                    <tr key={c.course} style={{cursor:"pointer"}} onClick={()=>{setCourseFilter(c.course);setTab("rounds");}}>
+                      <td style={{...S.td,fontWeight:700,fontSize:12}}>{c.course}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace"}}>{c.played}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace"}}>{c.par}</td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace"}}>{c.avg}</td>
+                      <td style={{...S.td,whiteSpace:"nowrap"}}>
+                        <Chip diff={-1} score={c.best}/>
+                        {c.bestToPar!=null && <span style={{marginLeft:5,fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:INL}}>({c.bestToPar>=0?"+":""}{c.bestToPar})</span>}
+                      </td>
+                      <td style={{...S.td,whiteSpace:"nowrap"}}>
+                        <Chip diff={2} score={c.worst}/>
+                        {c.worstToPar!=null && <span style={{marginLeft:5,fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:INL}}>({c.worstToPar>=0?"+":""}{c.worstToPar})</span>}
+                      </td>
+                      <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>{fmtD(c.last)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── COURSE STATS ── */}
+        {tab==="stats" && (
+          <div style={S.sec}>
+            <div style={S.secTitle}>📈 Course Stats</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+              {ALL_COURSES.map(c=>{
+                const has=rounds.some(r=>r.course===c.name&&r.detailLoaded);
+                const active=selCourse===c.name;
+                return <button key={c.name} style={{...active?S.btnG:S.btnO,fontSize:11,padding:"6px 11px",opacity:has?1:0.5}} onClick={()=>setSelCourse(c.name)}>{c.name}</button>;
+              })}
+            </div>
+            {!cd||cRounds.length===0?(
+              <div style={{textAlign:"center",padding:"40px 16px",color:INL}}>
+                <strong style={{display:"block",fontSize:18,color:INM,marginBottom:6}}>No hole data for {selCourse}</strong>
+                Share a screenshot of that tab to load it in.
+              </div>
+            ):(
+              <>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10,marginBottom:18}}>
+                  {[
+                    [true,"Rounds",cRounds.length,`Par ${cd.par} · ${cd.yards}y`],
+                    [false,"Avg Score",avg(cRounds.map(r=>r.totalScore).filter(Boolean)),`best ${Math.min(...cRounds.map(r=>r.totalScore).filter(Boolean))}`],
+                    [true,"Par 3 Avg",byPar(3),"to par"],
+                    [false,"Par 4 Avg",byPar(4),"to par"],
+                    [true,"Par 5 Avg",byPar(5),"to par"],
+                    [false,"Avg Front 9",avg(f9s),`best ${f9s.length?Math.min(...f9s):"—"}`],
+                    [true,"Avg Back 9",avg(b9s),`best ${b9s.length?Math.min(...b9s):"—"}`],
+                    [false,"Best Hole",`H${sortedH[0]?.n??"-"}`,sortedH[0]?`Par ${sortedH[0].par} · avg ${parseFloat(sortedH[0].avgToPar)>=0?"+":""}${sortedH[0].avgToPar}`:""],[true,"Hardest",`H${sortedH[sortedH.length-1]?.n??"-"}`,sortedH.length?`avg +${sortedH[sortedH.length-1].avgToPar}`:""],
+                  ].map(([g,lbl,val,sub],i)=>(
+                    <div key={i} style={g?S.cardG:S.card}>
+                      <div style={S.lbl}>{lbl}</div>
+                      <div style={{...S.val,fontSize:20}}>{val}</div>
+                      <div style={S.sub2}>{sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={S.secTitle}>Hole by Hole</div>
+                {hs[0]?._roundsExcluded > 0 && (
+                  <div style={{background:"rgba(232,116,44,.1)",border:`1px solid ${BR}`,borderRadius:8,padding:"10px 12px",marginBottom:12,fontSize:12,color:INK,lineHeight:1.6}}>
+                    ⚠️ <strong>{hs[0]._roundsExcluded} round(s)</strong> for {selCourse} have incomplete hole-by-hole data and were excluded from the birdie/par/bogey counts below (the "vs Par" average is still accurate — it comes straight from your sheet). Re-sync this course's tab to fix.
+                  </div>
+                )}
+                <div style={S.tw}>
+                  <table style={S.tbl}>
+                    <thead><tr>{["H","Par","Yds","SI","Avg","vs Par","Best","Worst","🦅","🐦","—","Bog","2+","3+","4+"].map(h=><th key={h} style={S.th}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {hs.map(h=>{
+                        const tp=parseFloat(h.avgToPar);
+                        const rowBg=isNaN(tp)?"transparent":tp<0?"rgba(82,183,136,.07)":tp>1.2?"rgba(192,57,43,.04)":"transparent";
+                        const atpDiff=h.avgToPar!=null?(tp<0?-1:tp<0.5?0:tp<1.5?1:2):null;
+                        return <tr key={h.n} style={{background:rowBg}}>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{h.n}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace"}}>{h.par}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",color:INL,fontSize:10}}>{h.yards}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",color:INL,fontSize:10}}>{h.si}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:600}}>{h.avgScore??"-"}</td>
+                          <td style={S.td}>{h.avgToPar!=null?<Chip diff={atpDiff} score={`${tp>=0?"+":""}${h.avgToPar}`}/>:"—"}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",color:"#14532d",fontWeight:600}}>{h.best??"-"}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",color:"#7f1d1d",fontWeight:600}}>{h.worst??"-"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:"#713f12",fontWeight:600}}>{h.eagles||"·"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:"#14532d"}}>{h.birdies||"·"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace"}}>{h.pars||"·"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:"#7f1d1d"}}>{h.bogeys||"·"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:"#7f1d1d",fontWeight:600}}>{h.doubles||"·"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:"#7f1d1d"}}>{h.triples||"·"}</td>
+                          <td style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:"#7f1d1d"}}>{h.quads||"·"}</td>
+                        </tr>;
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{...S.secTitle,marginTop:20}}>Scorecards</div>
+                <div style={S.tw}>
+                  <table style={S.tbl}>
+                    <thead>
+                      <tr>
+                        <th style={S.th}>Date</th>
+                        {cd.holes.map(h=><th key={h.n} style={{...S.th,textAlign:"center",minWidth:24,padding:"6px 3px"}}>{h.n}<br/><span style={{color:GL,fontWeight:400}}>p{h.par}</span></th>)}
+                        <th style={S.th}>F9</th><th style={S.th}>B9</th><th style={S.th}>Tot</th><th style={S.th}>Net</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cRounds.map(r=>(
+                        <tr key={r.id}>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11,whiteSpace:"nowrap"}}>{fmtD(r.date)}</td>
+                          {r.holes.map((score,i)=>{
+                            const hp=cd.holes[i]?.par||4,s=parseInt(score),d=isNaN(s)?null:s-hp;
+                            return <td key={i} style={{...S.td,textAlign:"center",padding:"5px 2px"}}><Chip diff={d} score={score||"·"} small/></td>;
+                          })}
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,fontSize:12}}>{r.front9||"—"}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:600,fontSize:12}}>{r.back9||"—"}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700,color:G}}>{r.totalScore}</td>
+                          <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:BR}}>{r.handicapCounting??"—"}</td>
+                        </tr>
+                      ))}
+                      <tr style={{background:CRD}}>
+                        <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,fontWeight:700}}>PAR</td>
+                        {cd.holes.map(h=><td key={h.n} style={{...S.td,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700}}>{h.par}</td>)}
+                        <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{cd.front}</td>
+                        <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{cd.back}</td>
+                        <td style={{...S.td,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{cd.par}</td>
+                        <td style={S.td}>—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── LOG ── */}
+        {tab==="log" && (
+          <div style={S.sec}>
+            <div style={S.secTitle}>Log a Round</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:12,marginBottom:18}}>
+              {[["Date","date","date"],["Course","course","text"],["Tees","tees","select"],["Par","par","number"],["Course Rating","courseRating","number"],["Slope","slope","number"]].map(([lbl,key,type])=>(
+                <div key={key} style={S.field}>
+                  <label style={S.fLabel}>{lbl}</label>
+                  {type==="select"
+                    ? <select style={S.fInput} value={logForm.tees} onChange={e=>setLogForm(f=>({...f,tees:e.target.value}))}>
+                        {["Black","Blue","White","Yellow","Red","Gold"].map(t=><option key={t}>{t}</option>)}
+                      </select>
+                    : <input type={type} style={S.fInput} value={logForm[key]||""} list={key==="course"?"clist":undefined}
+                        onChange={e=>setLogForm(f=>({...f,[key]:e.target.value}))}/>
+                  }
+                  {key==="course"&&<datalist id="clist">{ALL_COURSES.map(c=><option key={c.name} value={c.name}/>)}</datalist>}
+                </div>
+              ))}
+            </div>
+            <div style={{...S.secTitle}}>Scores
+              {holeTotal>0&&<span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:400,color:INM,marginLeft:8}}>
+                Total: {holeTotal} <span style={{color:holeTotal-(parseInt(logForm.par)||72)>0?RD:G}}>({holeTotal-(parseInt(logForm.par)||72)>=0?"+":""}{holeTotal-(parseInt(logForm.par)||72)})</span>
+              </span>}
+            </div>
+            {["FRONT NINE",0,"BACK NINE",9].reduce((acc,v,i,arr)=>{
+              if(i%2===0) acc.push([arr[i],arr[i+1]]);return acc;
+            },[]).map(([label,start])=>(
+              <div key={label}>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,letterSpacing:1,margin:"8px 0 4px"}}>{label}</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(9,1fr)",gap:3,marginBottom:4}}>
+                  {Array.from({length:9},(_,i)=>(
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:2,alignItems:"center"}}>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL}}>{start+i+1}</span>
+                      <input type="number" min="1" max="15" style={{...S.fInput,textAlign:"center",padding:"5px 1px",fontSize:12,fontFamily:"'IBM Plex Mono',monospace"}}
+                        value={logForm.holes[start+i]||""} onChange={e=>setLogForm(f=>{const h=[...f.holes];h[start+i]=e.target.value;return{...f,holes:h};})}/>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div style={{borderTop:`1px solid ${CRD}`,margin:"10px 0 14px"}}/>
+            <div style={{...S.field,marginBottom:14}}>
+              <label style={S.fLabel}>Notes</label>
+              <textarea style={{...S.fInput,resize:"vertical",minHeight:56}} value={logForm.notes} onChange={e=>setLogForm(f=>({...f,notes:e.target.value}))} placeholder="Conditions, highlights…"/>
+            </div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              <button style={{...S.btnG,fontSize:14,padding:"11px 22px"}} onClick={()=>{
+                const total=logForm.holes.reduce((s,h)=>s+(parseInt(h)||0),0);
+                setRounds(r=>[...r,{...logForm,totalScore:total||null,id:Date.now(),detailLoaded:false,front9:null,back9:null}]);
+                setLogForm(f=>({...f,holes:Array(18).fill(""),notes:""}));
+                setTab("rounds");
+              }}>💾 Save Round</button>
+              <button style={S.btnO} onClick={()=>setLogForm(f=>({...f,holes:Array(18).fill(""),notes:""}))}>Clear</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── SYNC ── */}
+        {tab==="sync" && (
+          <div style={S.sec}>
+            <div style={S.secTitle}>🔄 Sync Sheets</div>
+            <div style={{background:G,borderRadius:10,padding:"14px 16px",marginBottom:16,color:CR}}>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,background:BR,color:G,padding:"2px 7px",borderRadius:4,letterSpacing:1,fontWeight:500}}>HOW TO</span>
+              <p style={{fontSize:12,lineHeight:1.8,color:"rgba(245,240,232,.85)",marginTop:8}}>
+                Google Sheets: <strong style={{color:BRL}}>File → Share → Publish to web</strong> → select tab → format: <strong style={{color:BRL}}>CSV</strong> → Publish → copy URL → paste below.
+              </p>
+            </div>
+
+            {/* Wipe everything — clears ALL rounds down to zero (not back to
+                the old 40-round demo baseline) so you can re-import only
+                real data from your sheets. Course metadata (pars, yardages,
+                avg-to-par) is also restored to its pristine un-synced state,
+                since sync mutates ALL_COURSES in place and a partial reset
+                previously left stale values behind.
+                Note: window.confirm() is blocked inside the artifact sandbox
+                and silently does nothing, so this uses a two-tap in-app
+                confirmation instead of a native browser dialog. */}
+            <div style={{marginBottom:10}}>
+              {!confirmReset ? (
+                <button
+                  style={{...S.btnO,width:"100%",fontSize:12,padding:"9px 14px",borderColor:RD,color:RD}}
+                  onClick={()=>setConfirmReset(true)}>
+                  ⟲ Wipe All Data
+                </button>
+              ) : (
+                <div style={{background:"rgba(192,57,43,.08)",border:`1px solid ${RD}`,borderRadius:8,padding:"12px 14px"}}>
+                  <div style={{fontSize:12,color:INK,marginBottom:10,lineHeight:1.6}}>
+                    <strong>Are you sure?</strong> This permanently deletes every round — down to zero, not back to demo data. You'll need to re-import everything from your sheets afterwards.
+                  </div>
+                  <div style={{display:"flex",gap:8}}>
+                    <button
+                      style={{...S.btnO,flex:1,fontSize:12,padding:"8px 12px"}}
+                      onClick={()=>setConfirmReset(false)}>
+                      Cancel
+                    </button>
+                    <button
+                      style={{flex:1,fontSize:12,padding:"8px 12px",borderRadius:6,fontWeight:600,cursor:"pointer",border:"none",fontFamily:"'Inter',sans-serif",background:RD,color:"#fff"}}
+                      onClick={()=>{
+                        restorePristineCourses();
+                        setRounds([]);
+                        try { localStorage.removeItem("fl:rounds"); } catch {}
+                        try { localStorage.removeItem("fl:urls"); } catch {}
+                        setSheetUrls({});
+                        setSyncSt({});
+                        setConfirmReset(false);
+                        setPasteMsg("✓ Wiped — 0 rounds remaining. Import fresh data below.");
+                      }}>
+                      Yes, wipe everything
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sync All */}
+            <button style={{...S.btnB,width:"100%",fontSize:14,padding:13,borderRadius:8,marginBottom:16,boxShadow:"0 2px 8px rgba(232,116,44,.3)"}} onClick={syncAll}>
+              ⟳ Sync All Sheets
+            </button>
+
+            {/* Master Apps Script URL — one URL covers all tabs */}
+            <div style={{...S.cardG,border:`2px solid ${GL}`,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:sheetUrls["master"]?GL:"#ccc",boxShadow:sheetUrls["master"]?"0 0 0 3px rgba(82,183,136,.2)":"none"}}/>
+                <strong style={{fontSize:14}}>🔗 Apps Script URL</strong>
+                {sheetUrls["master"]&&<span style={{marginLeft:"auto",fontSize:10,fontFamily:"'IBM Plex Mono',monospace",background:"rgba(82,183,136,.15)",color:GM,padding:"2px 7px",borderRadius:10}}>Connected</span>}
+              </div>
+              <div style={{fontSize:11,color:INM,marginBottom:10,lineHeight:1.6}}>
+                One URL syncs everything. Paste your deployed Apps Script URL here.
+              </div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                <input style={{flex:1,minWidth:140,padding:"8px 10px",border:"1px solid #d4c9b0",borderRadius:6,fontFamily:"'IBM Plex Mono',monospace",fontSize:11,outline:"none",background:CR}}
+                  placeholder="https://script.google.com/macros/s/…/exec"
+                  value={sheetUrls["master"]||""} onChange={e=>setSheetUrls(p=>({...p,master:e.target.value}))}/>
+              </div>
+              {syncSt["master"]?.msg&&<div style={{fontSize:11,marginTop:6,fontWeight:600,color:syncSt["master"].msg.startsWith("✓")?GM:RD}}>{syncSt["master"].msg}</div>}
+            </div>
+
+            {/* Per-tab sync status */}
+            {[{key:"summary",label:"📋 Summary / Scores & Handicap"},
+              ...ALL_COURSES.map(c=>({key:c.name.toLowerCase().replace(/\s+/g,"-"),label:`⛳ ${c.name}`}))
+            ].map(({key,label})=>{
+              const st=syncSt[key]||{};
+              return (
+                <div key={key} style={{...S.card,marginBottom:8,padding:"10px 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                    <div style={{width:7,height:7,borderRadius:"50%",background:st.lastSync?GL:st.msg?.startsWith("✗")?RD:"#ccc"}}/>
+                    <span style={{fontSize:12,fontWeight:600}}>{label}</span>
+                    {st.loading&&<span style={{fontSize:11,color:INL}}>Syncing…</span>}
+                    {st.msg&&!st.loading&&<span style={{fontSize:11,fontWeight:600,marginLeft:"auto",color:st.msg.startsWith("✓")?GM:RD}}>{st.msg}</span>}
+                    {st.lastSync&&!st.loading&&<span style={{fontSize:10,color:INL}}>{st.lastSync}</span>}
+                    {!st.loading&&<button style={{...S.btnG,fontSize:11,padding:"4px 10px",marginLeft:"auto",opacity:sheetUrls["master"]?1:0.4}}
+                      disabled={!sheetUrls["master"]} onClick={()=>syncTab(key,sheetUrls["master"])}>⟳</button>}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* JSON paste — most reliable method */}
+            <div style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 12px"}}>
+              <div style={{flex:1,height:1,background:CRD}}/><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,letterSpacing:2}}>MANUAL JSON IMPORT</span><div style={{flex:1,height:1,background:CRD}}/>
+            </div>
+            <div style={{background:G,borderRadius:8,padding:"12px 14px",marginBottom:12,color:CR,fontSize:12,lineHeight:1.7}}>
+              <strong style={{color:BRL}}>Guaranteed to work:</strong> Open your Apps Script URL in Safari with <code style={{background:"rgba(255,255,255,.15)",padding:"1px 5px",borderRadius:3}}>?sheet=Tinsley</code> appended, copy all the JSON text, paste below.
+              <br/>Example: <code style={{background:"rgba(255,255,255,.15)",padding:"1px 5px",borderRadius:3,fontSize:10,wordBreak:"break-all"}}>{sheetUrls["master"]||"YOUR_SCRIPT_URL"}?sheet=Summary</code>
+            </div>
+            <div style={{...S.field,marginBottom:10}}>
+              <label style={S.fLabel}>Paste raw JSON from browser (any sheet tab)</label>
+              <textarea style={{...S.fInput,minHeight:100,resize:"vertical",fontFamily:"'IBM Plex Mono',monospace",fontSize:10}}
+                value={pasteIn} onChange={e=>setPasteIn(e.target.value)} placeholder={'{"ok":true,"sheet":"Tinsley","data":{...}}'}/>
+            </div>
+            <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+              <button style={{...S.btnG,opacity:pasteLoad?0.5:1}} onClick={importJSON} disabled={pasteLoad}>{pasteLoad?"Importing…":"Import JSON"}</button>
+              {pasteMsg&&<span style={{fontSize:12,fontWeight:600,color:pasteMsg.startsWith("✓")?GM:RD}}>{pasteMsg}</span>}
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 12px"}}>
+              <div style={{flex:1,height:1,background:CRD}}/><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:INL,letterSpacing:2}}>OR PASTE CSV DATA</span><div style={{flex:1,height:1,background:CRD}}/>
+            </div>
+            <div style={{...S.field,marginBottom:10}}>
+              <label style={S.fLabel}>Paste sheet data (any tab)</label>
+              <textarea style={{...S.fInput,minHeight:80,resize:"vertical",fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}
+                value={pasteIn} onChange={e=>setPasteIn(e.target.value)} placeholder={"Round\tDate\tCourse\tScore\tScore to Par"}/>
+            </div>
+            <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+              <button style={{...S.btnG,opacity:pasteLoad?0.5:1}} onClick={importPaste} disabled={pasteLoad}>{pasteLoad?"Importing…":"Import CSV"}</button>
+              {pasteMsg&&<span style={{fontSize:12,fontWeight:600,color:pasteMsg.startsWith("✓")?GM:RD}}>{pasteMsg}</span>}
+            </div>
+          </div>
+        )}
+      </>
+      }
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>
