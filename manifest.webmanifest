@@ -1,0 +1,30 @@
+{
+  "name": "Glover Golf Hub",
+  "short_name": "Golf Hub",
+  "description": "Personal golf scores, handicap and course stats",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#023234",
+  "theme_color": "#023234",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
